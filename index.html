@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scribble's Script Hub & Executors Directory</title>
+    <style>
+        :root {
+            --bg-base: #0b0f19;
+            --bg-card: #131b2e;
+            --bg-input: #1a233a;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #2a3655;
+        }
+
+        [data-theme="oled"] {
+            --bg-base: #000000;
+            --bg-card: #0a0a0a;
+            --bg-input: #141414;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #262626;
+            --text-muted: #a3a3a3;
+        }
+
+        [data-theme="cyberpunk"] {
+            --bg-base: #05050a;
+            --bg-card: #0f0f1f;
+            --bg-input: #171730;
+            --accent: #ec4899;
+            --accent-hover: #db2777;
+            --border: #3b0764;
+            --text-muted: #f472b6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg-base); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; transition: background 0.3s; }
+
+        /* Navigation */
+        nav { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .logo { font-size: 20px; font-weight: 800; color: var(--accent); letter-spacing: 0.5px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .nav-links { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .btn { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn:hover { background: var(--accent-hover); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+        .btn-outline:hover { border-color: var(--accent); color: var(--text-main); }
+        .btn-danger { background: var(--danger); }
+
+        /* Container & Layout */
+        .container { max-width: 1200px; margin: 0 auto; padding: 32px 16px; width: 100%; flex: 1; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+        .search-bar { background: var(--bg-input); border: 1px solid var(--border); padding: 10px 16px; border-radius: 8px; color: white; width: 240px; outline: none; }
+        .search-bar:focus { border-color: var(--accent); }
+
+        /* Filter Chips */
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        .filter-chip { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; transition: 0.2s; }
+        .filter-chip.active, .filter-chip:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+        /* Scrolling Grid Frame */
+        .scrolling-frame { max-height: 550px; overflow-y: auto; padding-right: 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .scrolling-frame::-webkit-scrollbar { width: 6px; }
+        .scrolling-frame::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        /* Script & Executor Cards */
+        .script-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s, border-color 0.2s; }
+        .script-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .script-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: white; }
+        .script-game { font-size: 13px; color: var(--accent); font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+        .badge { font-size: 11px; padding: 3px 8px; border-radius: 6px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-muted); font-weight: 500; }
+        .badge.key-yes { color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
+        .badge.key-no { color: #22c55e; border-color: rgba(34, 197, 94, 0.3); }
+
+        /* AI Assistant Section */
+        .ai-chat-container { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; height: 600px; overflow: hidden; }
+        .ai-chat-header { padding: 16px 20px; background: var(--bg-input); border-bottom: 1px solid var(--border); font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .ai-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+        .ai-msg { max-width: 80%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.5; }
+        .ai-msg.user { background: var(--accent); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .ai-msg.assistant { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 2px; }
+        .ai-msg pre { background: #05070c; padding: 10px; border-radius: 6px; margin-top: 8px; overflow-x: auto; font-family: monospace; font-size: 12px; color: #38bdf8; }
+        .ai-input-area { padding: 16px; background: var(--bg-input); border-top: 1px solid var(--border); display: flex; gap: 10px; }
+        .ai-input { flex: 1; background: var(--bg-base); border: 1px solid var(--border); padding: 10px 14px; border-radius: 8px; color: white; outline: none; }
+        .ai-input:focus { border-color: var(--accent); }
+
+        /* Modals & Forms */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; padding: 16px; }
+        .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 600px; padding: 28px; max-height: 90vh; overflow-y: auto; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+        .form-control { width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: white; outline: none; }
+        .form-control:focus { border-color: var(--accent); }
+        .code-editor-box { background: #05070c; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 13px; color: #38bdf8; height: 160px; width: 100%; outline: none; resize: vertical; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        #warningModal { display: flex; }
+        .warning-box { text-align: center; }
+        .warning-box p { color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; font-size: 14px; }
+
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .admin-table th, .admin-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+        .admin-table th { color: var(--text-muted); }
+
+        .alert-msg { padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; display: none; }
+        .alert-error { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); color: #fca5a5; }
+        .alert-success { background: rgba(34, 197, 94, 0.1); border: 1px solid var(--success); color: #86efac; }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <!-- WARNING MODAL -->
+    <div class="modal-overlay" id="warningModal">
+        <div class="modal warning-box">
+            <h2>⚠️ Important Rules & Notice</h2>
+            <p>Welcome to Scribble's Script Hub & Executors Directory!<br><br>
+            1. <strong>No Obfuscated Code:</strong> Obfuscated scripts trigger an <strong>immediate system ban</strong>.<br>
+            2. <strong>Executors Directory:</strong> Check out the new directory tab to find the best executors for iOS, Android, and PC!<br>
+            3. <strong>ScribbleAI:</strong> Use the built-in AI assistant to find scripts or code custom tools.</p>
+            <button class="btn" onclick="acceptRules()">I Understand & Agree</button>
+        </div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="logo" onclick="router('home')">⚡ ScribbleHub <span style="font-size: 11px; background: var(--accent); padding: 2px 6px; border-radius: 4px;">PRO</span></div>
+        <div class="nav-links">
+            <input type="text" class="search-bar" id="searchInput" placeholder="Search scripts or games..." oninput="renderScripts()">
+            <button class="btn btn-outline" onclick="router('executors')">📱 Executors</button>
+            <button class="btn btn-outline" onclick="router('ai')">🤖 ScribbleAI</button>
+            <select class="form-control" id="themeSelector" style="width: auto; padding: 6px 10px; font-size: 12px;" onchange="changeTheme(this.value)">
+                <option value="dark">Dark Theme</option>
+                <option value="oled">OLED Black</option>
+                <option value="cyberpunk">Cyberpunk</option>
+            </select>
+            <button class="btn" onclick="openUploadModal()">Upload</button>
+            <button class="btn btn-outline" onclick="openAdminLogin()">Admin</button>
+        </div>
+    </nav>
+
+    <!-- CONTENT VIEWS -->
+    <div class="container" id="mainContainer">
+        
+        <!-- HOME VIEW -->
+        <div id="viewHome">
+            <div class="header-flex">
+                <div>
+                    <h1 style="font-size: 24px; font-weight: 800;">Community Script Directory</h1>
+                    <p style="color: var(--text-muted); font-size: 14px;">Explore safe scripts tested for mobile and PC executors.</p>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <span class="filter-chip active" onclick="setFilter('all', this)">All Scripts</span>
+                <span class="filter-chip" onclick="setFilter('trending', this)">🔥 Trending</span>
+                <span class="filter-chip" onclick="setFilter('mobile', this)">📱 Mobile Only</span>
+                <span class="filter-chip" onclick="setFilter('nokey', this)">🔓 No Key System</span>
+            </div>
+
+            <div class="scrolling-frame" id="scriptGrid"></div>
+        </div>
+
+        <!-- EXECUTORS DIRECTORY VIEW -->
+        <div id="viewExecutors" style="display: none;">
+            <div class="header-flex">
+                <div>
+                    <h1 style="font-size: 24px; font-weight: 800;">Best Executors Directory</h1>
+                    <p style="color: var(--text-muted); font-size: 14px;">Recommended safe and verified executors categorized by device.</p>
+                </div>
+                <button class="btn btn-outline" onclick="router('home')">Back to Scripts</button>
+            </div>
+
+            <div class="scrolling-frame" id="executorsGrid">
+                <!-- Executor Card 1 -->
+                <div class="script-card">
+                    <div>
+                        <div class="script-game">iOS / iPadOS</div>
+                        <div class="script-title">Delta Executor</div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Top choice for iPad and iPhone users with easy sideload support.</div>
+                        <div class="badges">
+                            <span class="badge">📱 Mobile (iOS)</span>
+                            <span class="badge key-yes">Key System: Yes</span>
+                            <span class="badge" style="color: #22c55e;">Status: Undetected</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Executor Card 2 -->
+                <div class="script-card">
+                    <div>
+                        <div class="script-game">Android & Cross-Platform</div>
+                        <div class="script-title">Arceus X</div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Extremely popular mobile script hub with built-in script recommendations.</div>
+                        <div class="badges">
+                            <span class="badge">📱 Mobile (Android)</span>
+                            <span class="badge key-yes">Key System: Yes</span>
+                            <span class="badge" style="color: #22c55e;">Status: Stable</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Executor Card 3 -->
+                <div class="script-card">
+                    <div>
+                        <div class="script-game">Windows PC</div>
+                        <div class="script-title">Wave / Hydrogen PC</div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">High-performance desktop executor with advanced Luau environment support.</div>
+                        <div class="badges">
+                            <span class="badge">💻 PC (Windows)</span>
+                            <span class="badge key-no">Key System: Varies</span>
+                            <span class="badge" style="color: #22c55e;">Status: Active</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Executor Card 4 -->
+                <div class="script-card">
+                    <div>
+                        <div class="script-game">iOS & Android</div>
+                        <div class="script-title">Codex Mobile</div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Reliable mobile executor with robust script execution capability.</div>
+                        <div class="badges">
+                            <span class="badge">📱 Mobile (Both)</span>
+                            <span class="badge key-yes">Key System: Yes</span>
+                            <span class="badge" style="color: #22c55e;">Status: Working</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI ASSISTANT VIEW -->
+        <div id="viewAI" style="display: none;">
+            <div class="header-flex">
+                <div>
+                    <h1 style="font-size: 24px; font-weight: 800;">ScribbleAI Script Assistant</h1>
+                    <p style="color: var(--text-muted); font-size: 14px;">Ask me to write custom Luau scripts or search the site for you!</p>
+                </div>
+                <button class="btn btn-outline" onclick="router('home')">Back to Scripts</button>
+            </div>
+
+            <div class="ai-chat-container">
+                <div class="ai-chat-header">
+                    <span>🤖 ScribbleAI (Online)</span>
+                </div>
+                <div class="ai-messages" id="aiMessages">
+                    <div class="ai-msg assistant">
+                        Hey! I'm ScribbleAI. Need help finding a script on this site or want me to code a custom Luau script for Roblox? Just ask!
+                    </div>
+                </div>
+                <div class="ai-input-area">
+                    <input type="text" class="ai-input" id="aiQueryInput" placeholder="e.g. Write an ESP script or find Fisch scripts..." onkeypress="if(event.key==='Enter') sendAIPrompt()">
+                    <button class="btn" onclick="sendAIPrompt()">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN VIEW -->
+        <div id="viewAdmin" style="display: none;">
+            <div class="header-flex">
+                <div>
+                    <h1 style="font-size: 24px; font-weight: 800;">Admin Moderation Panel</h1>
+                    <p style="color: var(--text-muted); font-size: 14px;">Manage database entries and review flagged content.</p>
+                </div>
+                <button class="btn btn-outline" onclick="router('home')">Back to Home</button>
+            </div>
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; overflow-x: auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Game</th>
+                            <th>Author</th>
+                            <th>Platform</th>
+                            <th>Copies</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- UPLOAD MODAL -->
+    <div class="modal-overlay" id="uploadModal">
+        <div class="modal">
+            <h2>Upload Script</h2>
+            <div class="alert-msg" id="uploadAlert"></div>
+            <form id="uploadForm" onsubmit="handleUpload(event)">
+                <div class="form-group">
+                    <label>Script Title</label>
+                    <input type="text" class="form-control" id="upTitle" required placeholder="e.g. Infinite Yield">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Game Name</label>
+                        <input type="text" class="form-control" id="upGame" required placeholder="e.g. Fisch / Universal">
+                    </div>
+                    <div class="form-group">
+                        <label>Author / Your Name</label>
+                        <input type="text" class="form-control" id="upAuthor" required placeholder="Your username">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Platform</label>
+                        <select class="form-control" id="upPlatform">
+                            <option value="Both">Both (PC & Mobile)</option>
+                            <option value="PC Only">PC Only</option>
+                            <option value="Mobile Only">Mobile Only</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Key System?</label>
+                        <select class="form-control" id="upKeySystem">
+                            <option value="No">No Key System</option>
+                            <option value="Yes">Has Key System</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Executors</label>
+                    <input type="text" class="form-control" id="upExecutors" placeholder="e.g. Delta, Arceus X">
+                </div>
+                <div class="form-group">
+                    <label>Lua Code (Plain text - No Obfuscation)</label>
+                    <textarea class="code-editor-box" id="upCode" required placeholder="print('Hello World')"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+                    <button type="button" class="btn btn-outline" onclick="closeUploadModal()">Cancel</button>
+                    <button type="submit" class="btn">Publish</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADMIN LOGIN MODAL -->
+    <div class="modal-overlay" id="adminLoginModal">
+        <div class="modal" style="max-width: 400px;">
+            <h2>Admin Login</h2>
+            <div class="alert-msg" id="loginAlert"></div>
+            <div class="form-group">
+                <label>Secret Password</label>
+                <input type="password" class="form-control" id="adminPasswordInput" placeholder="Password...">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+                <button type="button" class="btn btn-outline" onclick="closeAdminLogin()">Cancel</button>
+                <button type="button" class="btn" onclick="verifyAdminLogin()">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let scripts = JSON.parse(localStorage.getItem('scribble_scripts')) || [
+            { id: 1, title: "Universal ESP & Fly", game: "Universal", author: "Scribble513", platform: "Both", keySystem: "No", executors: "Delta, Synapse", code: "print('ESP Loaded')", copies: 142 },
+            { id: 2, title: "Fisch Auto Fish & Rod Upgrade", game: "Fisch", author: "0HM3G", platform: "Both", keySystem: "Yes", executors: "Arceus X", code: "print('Fisch Loaded')", copies: 389 }
+        ];
+
+        let isDeveloper = localStorage.getItem('scribble_is_dev') === 'true';
+        let currentFilter = 'all';
+
+        window.onload = function() {
+            if(!localStorage.getItem('rules_accepted')) {
+                document.getElementById('warningModal').style.display = 'flex';
+            }
+            const savedTheme = localStorage.getItem('scribble_theme') || 'dark';
+            document.body.setAttribute('data-theme', savedTheme);
+            document.getElementById('themeSelector').value = savedTheme;
+            checkUrlPath();
+            renderScripts();
+        }
+
+        function acceptRules() {
+            localStorage.setItem('rules_accepted', 'true');
+            document.getElementById('warningModal').style.display = 'none';
+        }
+
+        function changeTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('scribble_theme', theme);
+        }
+
+        function checkUrlPath() {
+            if(window.location.hash === '#/adminzlolsigma' || window.location.pathname.includes('adminzlolsigma')) {
+                if(isDeveloper) router('admin');
+                else openAdminLogin();
+            } else if(window.location.hash === '#/executors') {
+                router('executors');
+            }
+        }
+
+        function router(view) {
+            document.getElementById('viewHome').style.display = 'none';
+            document.getElementById('viewExecutors').style.display = 'none';
+            document.getElementById('viewAI').style.display = 'none';
+            document.getElementById('viewAdmin').style.display = 'none';
+
+            if(view === 'home') {
+                window.location.hash = '';
+                document.getElementById('viewHome').style.display = 'block';
+                renderScripts();
+            } else if(view === 'executors') {
+                window.location.hash = '#/executors';
+                document.getElementById('viewExecutors').style.display = 'block';
+            } else if(view === 'ai') {
+                window.location.hash = '#/ai';
+                document.getElementById('viewAI').style.display = 'block';
+            } else if(view === 'admin') {
+                if(!isDeveloper) { openAdminLogin(); return; }
+                window.location.hash = '#/adminzlolsigma';
+                document.getElementById('viewAdmin').style.display = 'block';
+                renderAdminTable();
+            }
+        }
+
+        function sendAIPrompt() {
+            const input = document.getElementById('aiQueryInput');
+            const query = input.value.trim();
+            if(!query) return;
+
+            const chatContainer = document.getElementById('aiMessages');
+            const userMsg = document.createElement('div');
+            userMsg.className = 'ai-msg user';
+            userMsg.innerText = query;
+            chatContainer.appendChild(userMsg);
+            input.value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            setTimeout(() => {
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'ai-msg assistant';
+                const lowerQ = query.toLowerCase();
+                if(lowerQ.includes('find') || lowerQ.includes('search')) {
+                    const match = scripts.find(s => lowerQ.includes(s.game.toLowerCase()) || lowerQ.includes(s.title.toLowerCase()));
+                    if(match) {
+                        aiMsg.innerHTML = `I found a matching script in the database!<br><strong>${match.title} (${match.game})</strong><br><pre>loadstring(game:HttpGet("https://scribblehub.vercel.app/api/raw?id=${match.id}"))()</pre>`;
+                    } else {
+                        aiMsg.innerText = `I searched the database but couldn't find an exact match for "${query}". Try uploading it or asking me to code it!`;
+                    }
+                } else if(lowerQ.includes('write') || lowerQ.includes('code') || lowerQ.includes('script')) {
+                    aiMsg.innerHTML = `Here is a custom Luau script generated based on your request:<br><pre>-- Generated by ScribbleAI\nlocal player = game.Players.LocalPlayer\nprint("Executing custom script for: " .. player.Name)\n\nwhile task.wait(1) do\n    print("Running background task...")\nend</pre>`;
+                } else {
+                    aiMsg.innerText = `I can help you search scripts or write Luau code! Try asking: "Find Fisch scripts" or "Write an admin command script."`;
+                }
+                chatContainer.appendChild(aiMsg);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 600);
+        }
+
+        function isObfuscated(code) {
+            const lower = code.toLowerCase();
+            const signatures = ["\\x", "string.char", "getfenv", "setfenv", "loadstring(string.dump", "syn.crypt", "vmprotect", "ironbrew", "moonsec"];
+            if ((code.match(/\\x[0-9a-fA-F]{2}/g) || []).length > 10) return true;
+            for (let sig of signatures) { if (lower.includes(sig)) return true; }
+            return false;
+        }
+
+        function checkRateLimit() {
+            if (isDeveloper) return true;
+            const lastUpload = localStorage.getItem('last_upload_time');
+            if (!lastUpload) return true;
+            const diffHours = (Date.now() - parseInt(lastUpload)) / (1000 * 60 * 60);
+            return diffHours < 1 ? Math.ceil((1 - diffHours) * 60) : true;
+        }
+
+        function setFilter(type, el) {
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            currentFilter = type;
+            renderScripts();
+        }
+
+        function renderScripts() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const grid = document.getElementById('scriptGrid');
+            grid.innerHTML = '';
+
+            let filtered = scripts.filter(s => s.title.toLowerCase().includes(query) || s.game.toLowerCase().includes(query));
+            if (currentFilter === 'mobile') filtered = filtered.filter(s => s.platform.includes('Mobile'));
+            else if (currentFilter === 'nokey') filtered = filtered.filter(s => s.keySystem === 'No');
+            else if (currentFilter === 'trending') filtered.sort((a, b) => b.copies - a.copies);
+
+            if(filtered.length === 0) {
+                grid.innerHTML = `<p style="color: var(--text-muted);">No scripts found.</p>`;
+                return;
+            }
+
+            filtered.forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'script-card';
+                card.innerHTML = `
+                    <div>
+                        <div class="script-game">${s.game}</div>
+                        <div class="script-title">${s.title}</div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">By ${s.author} • 📋 ${s.copies || 0} copies</div>
+                        <div class="badges">
+                            <span class="badge">💻 ${s.platform}</span>
+                            <span class="badge ${s.keySystem === 'Yes' ? 'key-yes' : 'key-no'}">Key: ${s.keySystem}</span>
+                            <span class="badge">🛠️ ${s.executors}</span>
+                        </div>
+                    </div>
+                    <button class="btn" style="width: 100%; margin-top: 10px;" onclick="copyScript(${s.id})">Copy Loadstring</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function copyScript(id) {
+            const s = scripts.find(item => item.id === id);
+            if(s) {
+                s.copies = (s.copies || 0) + 1;
+                localStorage.setItem('scribble_scripts', JSON.stringify(scripts));
+                navigator.clipboard.writeText(`loadstring(game:HttpGet("https://scribblehub.vercel.app/api/raw?id=${s.id}"))()`);
+                alert("Copied clean loadstring to clipboard!");
+                renderScripts();
+            }
+        }
+
+        function handleUpload(event) {
+            event.preventDefault();
+            const alertBox = document.getElementById('uploadAlert');
+            alertBox.style.display = 'none';
+
+            const rateCheck = checkRateLimit();
+            if (rateCheck !== true) {
+                showAlert(alertBox, `Rate limit active! Try again in ${rateCheck} minutes.`, 'error');
+                return;
+            }
+
+            const title = document.getElementById('upTitle').value;
+            const game = document.getElementById('upGame').value;
+            const author = document.getElementById('upAuthor').value;
+            const platform = document.getElementById('upPlatform').value;
+            const keySystem = document.getElementById('upKeySystem').value;
+            const executors = document.getElementById('upExecutors').value || 'Universal';
+            const code = document.getElementById('upCode').value;
+
+            if (isObfuscated(code)) {
+                showAlert(alertBox, 'SECURITY BAN: Obfuscated code detected! Session banned.', 'error');
+                setTimeout(() => { alert("Banned for uploading obfuscated code."); closeUploadModal(); }, 1500);
+                return;
+            }
+
+            scripts.unshift({ id: Date.now(), title, game, author, platform, keySystem, executors, code, copies: 0 });
+            localStorage.setItem('scribble_scripts', JSON.stringify(scripts));
+            if (!isDeveloper) localStorage.setItem('last_upload_time', Date.now().toString());
+
+            showAlert(alertBox, 'Script successfully published!', 'success');
+            setTimeout(() => { closeUploadModal(); renderScripts(); }, 1000);
+        }
+
+        function showAlert(el, msg, type) {
+            el.style.display = 'block';
+            el.className = `alert-msg alert-${type}`;
+            el.innerHTML = msg;
+        }
+
+        function openUploadModal() { document.getElementById('uploadModal').style.display = 'flex'; }
+        function closeUploadModal() { document.getElementById('uploadModal').style.display = 'none'; }
+        function openAdminLogin() { document.getElementById('adminLoginModal').style.display = 'flex'; }
+        function closeAdminLogin() { document.getElementById('adminLoginModal').style.display = 'none'; }
+
+        function verifyAdminLogin() {
+            const pass = document.getElementById('adminPasswordInput').value;
+            if(pass === 'SCRIBBLEDEVELOPEMENTPROJECTZ') {
+                isDeveloper = true;
+                localStorage.setItem('scribble_is_dev', 'true');
+                closeAdminLogin();
+                router('admin');
+            } else {
+                showAlert(document.getElementById('loginAlert'), 'Incorrect password!', 'error');
+            }
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('adminTableBody');
+            tbody.innerHTML = '';
+            scripts.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><strong>${s.title}</strong></td><td>${s.game}</td><td>${s.author}</td><td>${s.platform}</td><td>${s.copies || 0}</td><td><button class="btn btn-danger" style="padding: 4px 10px; font-size: 11px;" onclick="deleteScript(${s.id})">Delete</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteScript(id) {
+            if(confirm("Delete this script?")) {
+                scripts = scripts.filter(s => s.id !== id);
+                localStorage.setItem('scribble_scripts', JSON.stringify(scripts));
+                renderAdminTable();
+            }
+        }
+    </script>
+</body>
+</html>
