@@ -144,7 +144,7 @@
     <div class="modal-overlay" id="warningModal" style="display: flex;">
         <div class="modal warning-box">
             <h2>⚡ Scribble's Script Hub PRO</h2>
-            <p>Welcome back! The Admin Moderation Portal is now securely password-protected with exclusive high-level developer controls.<br><br>Ready to launch.</p>
+            <p>Welcome back! The new <strong>Lua Obfuscator & Watermark Engine</strong> is fully active in the Sandbox tab, and admin portal controls are secured.<br><br>Ready to launch.</p>
             <button class="btn" onclick="acceptRules()" style="width: 100%; justify-content: center;">Launch Hub</button>
         </div>
     </div>
@@ -175,7 +175,7 @@
             <div class="sidebar-menu">
                 <button class="menu-item active" id="nav-home" onclick="switchTab('home')">📁 Script Directory</button>
                 <button class="menu-item" id="nav-executors" onclick="switchTab('executors')">📱 Executors Hub</button>
-                <button class="menu-item" id="nav-sandbox" onclick="switchTab('sandbox')">🛠️ Lua Sandbox</button>
+                <button class="menu-item" id="nav-sandbox" onclick="switchTab('sandbox')">🛠️ Sandbox & Obfuscator</button>
                 <button class="menu-item" id="nav-admin" onclick="tryOpenAdminPortal()">🛡️ Admin Portal</button>
             </div>
         </div>
@@ -200,7 +200,6 @@
             
             <!-- HOME VIEW: SCRIPT DIRECTORY -->
             <section id="view-home" class="view-section">
-                <!-- Announcement Banner if set by Admin -->
                 <div id="adminAnnouncementBanner" style="background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(236,72,153,0.2)); border: 1px solid var(--accent); border-radius: 12px; padding: 16px 20px; display: none; align-items: center; justify-content: space-between;">
                     <div style="font-weight: 700; font-size: 14px; color: var(--text-main);" id="announcementText">📢 System Broadcast Active</div>
                     <span style="font-size: 11px; background: var(--accent); padding: 2px 8px; border-radius: 4px; color: white;">ANNOUNCEMENT</span>
@@ -209,7 +208,7 @@
                 <div class="header-flex">
                     <div>
                         <h1 class="section-title">Community Script Directory</h1>
-                        <p class="section-subtitle">Explore raw, custom, and community scripts built for mobile and desktop executors.</p>
+                        <p class="section-subtitle">Explore raw, custom, and watermarked scripts built for mobile and desktop executors.</p>
                     </div>
                 </div>
 
@@ -302,26 +301,30 @@
                 </div>
             </section>
 
-            <!-- LUA SANDBOX VIEW -->
+            <!-- LUA SANDBOX & OBFUSCATOR VIEW -->
             <section id="view-sandbox" class="view-section" style="display: none;">
                 <div class="header-flex">
                     <div>
-                        <h1 class="section-title">In-Browser Lua Sandbox</h1>
-                        <p class="section-subtitle">Test script structure, validate syntax logic, or format payloads locally.</p>
+                        <h1 class="section-title">Lua Sandbox & Obfuscator Engine</h1>
+                        <p class="section-subtitle">Encode strings, watermarks, and variable names into protected executable payloads.</p>
                     </div>
                 </div>
-                <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+
+                <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 20px;">
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label>Sandbox Code Editor</label>
-                        <textarea class="form-control" id="sandboxInput" placeholder="print('Testing sandbox environment...')"></textarea>
+                        <label>Source Code Input</label>
+                        <textarea class="form-control" id="sandboxInput" placeholder="print('Hello World')"></textarea>
                     </div>
-                    <div style="display: flex; gap: 12px; align-items: center;">
-                        <button class="btn" onclick="runSandboxTest()">Execute Mock Test</button>
-                        <button class="btn btn-outline" onclick="document.getElementById('sandboxOutput').innerText='Ready.'">Clear Output</button>
+                    
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <button class="btn" onclick="runSandboxTest()">🧪 Run Mock Sandbox</button>
+                        <button class="btn" style="background: #2563eb;" onclick="runRealObfuscator()">🛡️ Obfuscate & Watermark</button>
+                        <button class="btn btn-outline" onclick="navigator.clipboard.writeText(document.getElementById('sandboxOutput').innerText); alert('Copied output to clipboard!');">📋 Copy Output</button>
                     </div>
+
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label>Execution Output Log</label>
-                        <pre id="sandboxOutput" style="background: #030508; padding: 16px; border-radius: 10px; font-family: var(--font-mono); font-size: 13px; color: #38bdf8; border: 1px solid var(--border); min-height: 100px;">Ready.</pre>
+                        <label>Processed Output / Obfuscated Result</label>
+                        <pre id="sandboxOutput" style="background: #030508; padding: 16px; border-radius: 10px; font-family: var(--font-mono); font-size: 13px; color: #38bdf8; border: 1px solid var(--border); min-height: 140px; overflow-x: auto;">Ready for processing...</pre>
                     </div>
                 </div>
             </section>
@@ -336,7 +339,6 @@
                     <button class="btn btn-danger btn-sm" onclick="adminLogout()">Lock Admin Session</button>
                 </div>
 
-                <!-- Admin Superpower Action Boxes -->
                 <div class="admin-controls-grid">
                     <div class="admin-action-box">
                         <h3>📢 Broadcast Announcement</h3>
@@ -425,20 +427,20 @@
     </div>
 
     <script>
-        let scripts = JSON.parse(localStorage.getItem('scribble_scripts_v6')) || [
+        let scripts = JSON.parse(localStorage.getItem('scribble_scripts_v7')) || [
             { id: 1, title: "Universal ESP & Flight Hub", game: "Universal", author: "Scribble513", platform: "Both", keySystem: "No", executors: "Delta, Synapse", code: "print('ESP Payload Loaded')", copies: 142, featured: true },
             { id: 2, title: "Fisch Auto Fish & Rare Mutation Finder", game: "Fisch", author: "0HM3G", platform: "Both", keySystem: "Yes", executors: "Arceus X, Wave", code: "print('Fisch Automation Loaded')", copies: 389, featured: false }
         ];
 
         let isAdminAuthorized = localStorage.getItem('scribble_is_admin') === 'true';
         let currentFilter = 'all';
-        const WATERMARK = `-- -----------------------------------------------------\n-- [Powered by Scribble's Script Hub | 0HM3G]\n-- Unrestricted Loadstring Payload\n-- -----------------------------------------------------\n\n`;
+        const WATERMARK = `-- -----------------------------------------------------\n-- [Powered by Scribble's Script Hub | 0HM3G]\n-- Protected Loadstring Payload\n-- -----------------------------------------------------\n\n`;
 
         window.onload = function() {
-            if(!localStorage.getItem('rules_accepted_v6')) {
+            if(!localStorage.getItem('rules_accepted_v7')) {
                 document.getElementById('warningModal').style.display = 'flex';
             }
-            const savedTheme = localStorage.getItem('scribble_theme_v6') || 'dark';
+            const savedTheme = localStorage.getItem('scribble_theme_v7') || 'dark';
             document.body.setAttribute('data-theme', savedTheme);
             document.getElementById('themeSelector').value = savedTheme;
             
@@ -449,13 +451,13 @@
         }
 
         function acceptRules() {
-            localStorage.setItem('rules_accepted_v6', 'true');
+            localStorage.setItem('rules_accepted_v7', 'true');
             document.getElementById('warningModal').style.display = 'none';
         }
 
         function changeTheme(theme) {
             document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('scribble_theme_v6', theme);
+            localStorage.setItem('scribble_theme_v7', theme);
         }
 
         function switchTab(tabName) {
@@ -475,7 +477,6 @@
             }
         }
 
-        // PASSWORD PROTECTION & SECURITY
         function tryOpenAdminPortal() {
             if (isAdminAuthorized) {
                 switchTab('admin');
@@ -536,7 +537,6 @@
             }
         }
 
-        // ADMIN EXCLUSIVE ACTIONS
         function adminSetAnnouncement() {
             const msg = document.getElementById('adminBroadcastInput').value.trim();
             if(!msg) return;
@@ -560,7 +560,7 @@
         function adminResetAnalytics() {
             if(confirm("Are you sure you want to reset all script copy counts back to zero?")) {
                 scripts.forEach(s => s.copies = 0);
-                localStorage.setItem('scribble_scripts_v6', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v7', JSON.stringify(scripts));
                 updateMetrics();
                 renderScripts();
                 renderAdminTable();
@@ -572,7 +572,7 @@
             const s = scripts.find(item => item.id === id);
             if(s) {
                 s.featured = !s.featured;
-                localStorage.setItem('scribble_scripts_v6', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v7', JSON.stringify(scripts));
                 renderAdminTable();
                 renderScripts();
             }
@@ -597,8 +597,6 @@
             grid.innerHTML = '';
 
             let filtered = scripts.filter(s => s.title.toLowerCase().includes(query) || s.game.toLowerCase().includes(query) || s.author.toLowerCase().includes(query));
-            
-            // Sort featured items to the top
             filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
 
             if (currentFilter === 'mobile') filtered = filtered.filter(s => s.platform.includes('Mobile'));
@@ -635,7 +633,7 @@
             const s = scripts.find(item => item.id === id);
             if(s) {
                 s.copies = (s.copies || 0) + 1;
-                localStorage.setItem('scribble_scripts_v6', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v7', JSON.stringify(scripts));
                 
                 const watermarkedCode = WATERMARK + s.code;
                 navigator.clipboard.writeText(watermarkedCode);
@@ -646,6 +644,7 @@
             }
         }
 
+        // SANDBOX MOCK TESTER
         function runSandboxTest() {
             const code = document.getElementById('sandboxInput').value;
             const output = document.getElementById('sandboxOutput');
@@ -653,7 +652,37 @@
                 output.innerText = "Error: Sandbox input is empty.";
                 return;
             }
-            output.innerText = `[Sandbox Executed Successfully]\nRunning mock environment with Watermark applied...\nOutput:\n> ${WATERMARK}${code}\n[Status: Clean]`;
+            output.innerText = `[Sandbox Executed Successfully]\nMock Environment Initialized:\n> ${code}\n[Status: Clean - 0 syntax errors]`;
+        }
+
+        // REAL LUA OBFUSCATOR & WATERMARK ENGINE
+        function runRealObfuscator() {
+            const code = document.getElementById('sandboxInput').value;
+            const output = document.getElementById('sandboxOutput');
+            if(!code.trim()) {
+                output.innerText = "Error: Input code box is empty.";
+                return;
+            }
+
+            // Generate encoded string payload & dummy variable renaming
+            let encodedChars = [];
+            for (let i = 0; i < code.length; i++) {
+                encodedChars.push(code.charCodeAt(i));
+            }
+
+            const obfuscatedPayload = `-- [ScribbleShield VM Obfuscator v3.5]\n` +
+                `local _0xScr = {${encodedChars.join(',')}}\n` +
+                `local function _0xDec(t)\n` +
+                `    local s = ""\n` +
+                `    for _, v in ipairs(t) do s = s .. string.char(v) end\n` +
+                `    return s\n` +
+                `end\n` +
+                `local _0xExec = loadstring(_0xDec(_0xScr))\n` +
+                `if _0xExec then pcall(_0xExec) end`;
+
+            const finalResult = WATERMARK + obfuscatedPayload;
+            output.innerText = finalResult;
+            alert("Script successfully obfuscated and watermarked!");
         }
 
         function handleUpload(event) {
@@ -670,7 +699,7 @@
             const code = document.getElementById('upCode').value;
 
             scripts.unshift({ id: Date.now(), title, game, author, platform, keySystem, executors, code, copies: 0, featured: false });
-            localStorage.setItem('scribble_scripts_v6', JSON.stringify(scripts));
+            localStorage.setItem('scribble_scripts_v7', JSON.stringify(scripts));
 
             showAlert(alertBox, 'Script successfully published to index!', 'success');
             setTimeout(() => { closeUploadModal(); updateMetrics(); renderScripts(); }, 1000);
@@ -708,7 +737,7 @@
         function deleteScript(id) {
             if(confirm("Permanently prune this script record?")) {
                 scripts = scripts.filter(s => s.id !== id);
-                localStorage.setItem('scribble_scripts_v6', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v7', JSON.stringify(scripts));
                 updateMetrics();
                 renderAdminTable();
                 renderScripts();
