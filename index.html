@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scribble's Ultimate Script Hub & Engine PRO - Secure Edition</title>
+    <title>Scribble's Ultimate Script Hub & Engine PRO - Repo Scripts Edition</title>
     <style>
         :root {
             --bg-base: #05070c;
@@ -151,7 +151,7 @@
     <div class="modal-overlay" id="warningModal" style="display: flex;">
         <div class="modal warning-box">
             <h2>⚡ Scribble's Script Hub PRO</h2>
-            <p>Secure Enterprise VM & Protected Admin Edition Active!<br><br>All visitor sessions start locked by default. Admin verification is required for moderation access.</p>
+            <p>GitHub API Repository Integration Active!<br><br>Publish scripts to automatically commit them to your `scripts/` tab on your git repository and generate the exact raw loadstring link.</p>
             <button class="btn" onclick="acceptRules()" style="width: 100%; justify-content: center;">Launch Hub</button>
         </div>
     </div>
@@ -159,7 +159,7 @@
     <div class="modal-overlay" id="adminLoginModal">
         <div class="modal" style="max-width: 400px;">
             <h2>🛡️ Admin Portal Authorization</h2>
-            <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 16px;">Enter the developer password to access moderation controls.</p>
+            <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 16px;">Enter the developer password (`didstein`) to access moderation controls.</p>
             <div class="alert-msg" id="loginAlert"></div>
             <div class="form-group">
                 <label>Developer Password</label>
@@ -174,12 +174,13 @@
 
     <div class="modal-overlay" id="uploadModal">
         <div class="modal">
-            <h2>Publish Script via GitHub API</h2>
+            <h2>Publish Script to Repository (`scripts/` tab)</h2>
             <div class="alert-msg" id="uploadAlert"></div>
             <form id="uploadForm" onsubmit="handleUpload(event)">
                 <div class="form-group">
-                    <label>GitHub Personal Access Token (PAT) [Repo scope]</label>
-                    <input type="password" class="form-control" id="upToken" required placeholder="ghp_xxxxxxxxxxxx">
+                    <label>GitHub Personal Access Token (PAT)</label>
+                    <input type="password" class="form-control" id="upToken" required placeholder="Paste your token here..." value="">
+                    <span style="font-size: 10px; color: var(--text-muted); margin-top: 4px; display: block;">Used locally in your browser to commit the script file directly to your repo's `scripts/` folder.</span>
                 </div>
                 <div class="form-group">
                     <label>Script Title</label>
@@ -222,7 +223,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeUploadModal()">Cancel</button>
-                    <button type="submit" class="btn">Publish via API</button>
+                    <button type="submit" class="btn">Publish to Repo</button>
                 </div>
             </form>
         </div>
@@ -231,7 +232,7 @@
     <sidebar>
         <div>
             <div class="sidebar-brand" onclick="switchTab('home')">
-                ⚡ ScribbleHub <span style="font-size: 9px; background: var(--accent); padding: 2px 6px; border-radius: 6px; color: white;">SECURE</span>
+                ⚡ ScribbleHub <span style="font-size: 9px; background: var(--accent); padding: 2px 6px; border-radius: 6px; color: white;">REPO API</span>
             </div>
             <div class="sidebar-menu">
                 <button class="menu-item active" id="nav-home" onclick="switchTab('home')">📁 Script Directory</button>
@@ -270,7 +271,7 @@
                 <div class="header-flex">
                     <div>
                         <h1 class="section-title">Community Script Directory</h1>
-                        <p class="section-subtitle">Explore verified scripts with automated GitHub API raw endpoints.</p>
+                        <p class="section-subtitle">Explore verified scripts with automated GitHub raw endpoints.</p>
                     </div>
                 </div>
 
@@ -464,22 +465,22 @@
     </div>
 
     <script>
-        let scripts = JSON.parse(localStorage.getItem('scribble_scripts_v14')) || [
-            { id: 1, title: "Universal ESP & Flight Hub", game: "Universal", author: "Scribble513", platform: "Both", keySystem: "No", executors: "Delta, Synapse", code: "print('ESP Payload Loaded')", copies: 142, featured: true },
-            { id: 2, title: "Fisch Auto Fish & Rare Mutation Finder", game: "Fisch", author: "0HM3G", platform: "Both", keySystem: "Yes", executors: "Arceus X, Wave", code: "print('Fisch Automation Loaded')", copies: 389, featured: false }
+        let scripts = JSON.parse(localStorage.getItem('scribble_scripts_v17')) || [
+            { id: 1, filename: "1.lua", title: "Universal ESP & Flight Hub", game: "Universal", author: "Scribble513", platform: "Both", keySystem: "No", executors: "Delta, Synapse", code: "print('ESP Payload Loaded')", copies: 142, featured: true },
+            { id: 2, filename: "2.lua", title: "Fisch Auto Fish & Rare Mutation Finder", game: "Fisch", author: "0HM3G", platform: "Both", keySystem: "Yes", executors: "Arceus X, Wave", code: "print('Fisch Automation Loaded')", copies: 389, featured: false }
         ];
 
-        // Defaults strictly to locked (false) unless verified successfully
         let isAdminAuthorized = localStorage.getItem('scribble_is_admin') === 'true';
         let currentFilter = 'all';
+        const BASE_RAW_URL = "https://raw.githubusercontent.com/ScribbleDevelopment/tengo/refs/heads/main/scripts/";
         const WATERMARK = `-- -----------------------------------------------------\n-- [Protected by ScribbleShield VM Enterprise v5.2]\n-- Anti-Tamper & Bytecode Virtualization Enabled\n-- -----------------------------------------------------\n\n`;
 
         window.onload = function() {
             try {
-                if(!localStorage.getItem('rules_accepted_v14')) {
+                if(!localStorage.getItem('rules_accepted_v17')) {
                     document.getElementById('warningModal').style.display = 'flex';
                 }
-                const savedTheme = localStorage.getItem('scribble_theme_v14') || 'dark';
+                const savedTheme = localStorage.getItem('scribble_theme_v17') || 'dark';
                 document.body.setAttribute('data-theme', savedTheme);
                 document.getElementById('themeSelector').value = savedTheme;
                 
@@ -493,13 +494,13 @@
         }
 
         function acceptRules() {
-            localStorage.setItem('rules_accepted_v14', 'true');
+            localStorage.setItem('rules_accepted_v17', 'true');
             document.getElementById('warningModal').style.display = 'none';
         }
 
         function changeTheme(theme) {
             document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('scribble_theme_v14', theme);
+            localStorage.setItem('scribble_theme_v17', theme);
         }
 
         function switchTab(tabName) {
@@ -542,7 +543,6 @@
             document.getElementById('adminLoginModal').style.display = 'none';
         }
 
-        // Updated password key to "didstein"
         function verifyAdminLogin() {
             const pass = document.getElementById('adminPasswordInput').value;
             const alertBox = document.getElementById('loginAlert');
@@ -608,7 +608,7 @@
         function adminResetAnalytics() {
             if(confirm("Are you sure you want to reset all script copy counts back to zero?")) {
                 scripts.forEach(s => s.copies = 0);
-                localStorage.setItem('scribble_scripts_v14', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v17', JSON.stringify(scripts));
                 updateMetrics();
                 renderScripts();
                 renderAdminTable();
@@ -619,7 +619,7 @@
         function adminPurgeAll() {
             if(confirm("WARNING: Wipe all indexed scripts permanently?")) {
                 scripts = [];
-                localStorage.setItem('scribble_scripts_v14', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v17', JSON.stringify(scripts));
                 updateMetrics();
                 renderScripts();
                 renderAdminTable();
@@ -631,7 +631,7 @@
             const s = scripts.find(item => item.id === id);
             if(s) {
                 s.featured = !s.featured;
-                localStorage.setItem('scribble_scripts_v14', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v17', JSON.stringify(scripts));
                 renderAdminTable();
                 renderScripts();
             }
@@ -705,9 +705,9 @@
             const s = scripts.find(item => item.id === id);
             if(s) {
                 s.copies = (s.copies || 0) + 1;
-                localStorage.setItem('scribble_scripts_v14', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v17', JSON.stringify(scripts));
                 
-                const loadstringPayload = `loadstring(game:HttpGet("https://scribbledevelopment.github.io/tengo/scripts/${s.id}.lua"))()`;
+                const loadstringPayload = `loadstring(game:HttpGet("${BASE_RAW_URL}${s.filename}"))()`;
 
                 navigator.clipboard.writeText(loadstringPayload);
                 alert("Loadstring payload copied to clipboard!\n\n" + loadstringPayload);
@@ -794,7 +794,7 @@
                     const imported = JSON.parse(e.target.result);
                     if(Array.isArray(imported)) {
                         scripts = imported;
-                        localStorage.setItem('scribble_scripts_v14', JSON.stringify(scripts));
+                        localStorage.setItem('scribble_scripts_v17', JSON.stringify(scripts));
                         updateMetrics();
                         renderScripts();
                         alert("Database restored successfully!");
@@ -824,14 +824,15 @@
             const rawCode = document.getElementById('upCode').value;
 
             const scriptId = Date.now();
+            const filename = `${scriptId}.lua`;
             const finalScriptContent = WATERMARK + rawCode;
 
-            showAlert(alertBox, 'Communicating with GitHub API to create script file...', 'success');
+            showAlert(alertBox, 'Committing file directly to your repo under scripts/ folder...', 'success');
             
             try {
-                const owner = "scribbledevelopment";
+                const owner = "ScribbleDevelopment";
                 const repo = "tengo";
-                const path = `scripts/${scriptId}.lua`;
+                const path = `scripts/${filename}`; // Explicitly commits inside the scripts/ folder
                 const contentEncoded = btoa(unescape(encodeURIComponent(finalScriptContent)));
 
                 const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
@@ -841,20 +842,20 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        message: `Automated API Publish: ${title} (${scriptId})`,
+                        message: `Publish script ${filename} via ScribbleHub`,
                         content: contentEncoded
                     })
                 });
 
                 if(response.ok) {
-                    scripts.unshift({ id: scriptId, title, game, author, platform, keySystem, executors, code: rawCode, copies: 0, featured: false });
-                    localStorage.setItem('scribble_scripts_v14', JSON.stringify(scripts));
+                    scripts.unshift({ id: scriptId, filename: filename, title, game, author, platform, keySystem, executors, code: rawCode, copies: 0, featured: false });
+                    localStorage.setItem('scribble_scripts_v17', JSON.stringify(scripts));
 
-                    showAlert(alertBox, 'Script successfully published via GitHub API! Loadstring is live.', 'success');
+                    showAlert(alertBox, 'Script successfully committed to scripts/ tab! Loadstring is live.', 'success');
                     setTimeout(() => { closeUploadModal(); updateMetrics(); renderScripts(); }, 1500);
                 } else {
                     const errData = await response.json();
-                    showAlert(alertBox, 'API Error: ' + (errData.message || 'Unauthorized or incorrect token.'), 'error');
+                    showAlert(alertBox, 'API Error: ' + (errData.message || 'Failed to commit file. Verify your token permissions.'), 'error');
                 }
             } catch(err) {
                 showAlert(alertBox, 'Network Error communicating with GitHub API.', 'error');
@@ -894,7 +895,7 @@
         function deleteScript(id) {
             if(confirm("Permanently prune this script record?")) {
                 scripts = scripts.filter(s => s.id !== id);
-                localStorage.setItem('scribble_scripts_v14', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v17', JSON.stringify(scripts));
                 updateMetrics();
                 renderAdminTable();
                 renderScripts();
