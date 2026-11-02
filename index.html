@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scribble's Ultimate Script Hub & Engine PRO - Secure VM Edition</title>
+    <title>Scribble's Ultimate Script Hub & Engine PRO - Secure Edition</title>
     <style>
         :root {
             --bg-base: #05070c;
@@ -151,7 +151,7 @@
     <div class="modal-overlay" id="warningModal" style="display: flex;">
         <div class="modal warning-box">
             <h2>⚡ Scribble's Script Hub PRO</h2>
-            <p>Secure VM Obfuscator & 50-Feature Engine Active!<br><br>All core modules, database synchronizations, and advanced bytecode virtualization are fully operational.</p>
+            <p>Secure Enterprise VM & Protected Admin Edition Active!<br><br>All visitor sessions start locked by default. Admin verification is required for moderation access.</p>
             <button class="btn" onclick="acceptRules()" style="width: 100%; justify-content: center;">Launch Hub</button>
         </div>
     </div>
@@ -159,11 +159,11 @@
     <div class="modal-overlay" id="adminLoginModal">
         <div class="modal" style="max-width: 400px;">
             <h2>🛡️ Admin Portal Authorization</h2>
-            <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 16px;">Enter the secret developer password (SCRIBBLEDEVELOPEMENTPROJECTZ).</p>
+            <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 16px;">Enter the developer password to access moderation controls.</p>
             <div class="alert-msg" id="loginAlert"></div>
             <div class="form-group">
                 <label>Developer Password</label>
-                <input type="password" class="form-control" id="adminPasswordInput" onkeypress="if(event.key==='Enter') verifyAdminLogin()">
+                <input type="password" class="form-control" id="adminPasswordInput" placeholder="Enter password..." onkeypress="if(event.key==='Enter') verifyAdminLogin()">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline" onclick="closeAdminLogin()">Cancel</button>
@@ -231,7 +231,7 @@
     <sidebar>
         <div>
             <div class="sidebar-brand" onclick="switchTab('home')">
-                ⚡ ScribbleHub <span style="font-size: 9px; background: var(--accent); padding: 2px 6px; border-radius: 6px; color: white;">VM PRO</span>
+                ⚡ ScribbleHub <span style="font-size: 9px; background: var(--accent); padding: 2px 6px; border-radius: 6px; color: white;">SECURE</span>
             </div>
             <div class="sidebar-menu">
                 <button class="menu-item active" id="nav-home" onclick="switchTab('home')">📁 Script Directory</button>
@@ -464,21 +464,22 @@
     </div>
 
     <script>
-        let scripts = JSON.parse(localStorage.getItem('scribble_scripts_v12')) || [
+        let scripts = JSON.parse(localStorage.getItem('scribble_scripts_v14')) || [
             { id: 1, title: "Universal ESP & Flight Hub", game: "Universal", author: "Scribble513", platform: "Both", keySystem: "No", executors: "Delta, Synapse", code: "print('ESP Payload Loaded')", copies: 142, featured: true },
             { id: 2, title: "Fisch Auto Fish & Rare Mutation Finder", game: "Fisch", author: "0HM3G", platform: "Both", keySystem: "Yes", executors: "Arceus X, Wave", code: "print('Fisch Automation Loaded')", copies: 389, featured: false }
         ];
 
+        // Defaults strictly to locked (false) unless verified successfully
         let isAdminAuthorized = localStorage.getItem('scribble_is_admin') === 'true';
         let currentFilter = 'all';
         const WATERMARK = `-- -----------------------------------------------------\n-- [Protected by ScribbleShield VM Enterprise v5.2]\n-- Anti-Tamper & Bytecode Virtualization Enabled\n-- -----------------------------------------------------\n\n`;
 
         window.onload = function() {
             try {
-                if(!localStorage.getItem('rules_accepted_v12')) {
+                if(!localStorage.getItem('rules_accepted_v14')) {
                     document.getElementById('warningModal').style.display = 'flex';
                 }
-                const savedTheme = localStorage.getItem('scribble_theme_v12') || 'dark';
+                const savedTheme = localStorage.getItem('scribble_theme_v14') || 'dark';
                 document.body.setAttribute('data-theme', savedTheme);
                 document.getElementById('themeSelector').value = savedTheme;
                 
@@ -492,13 +493,13 @@
         }
 
         function acceptRules() {
-            localStorage.setItem('rules_accepted_v12', 'true');
+            localStorage.setItem('rules_accepted_v14', 'true');
             document.getElementById('warningModal').style.display = 'none';
         }
 
         function changeTheme(theme) {
             document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('scribble_theme_v12', theme);
+            localStorage.setItem('scribble_theme_v14', theme);
         }
 
         function switchTab(tabName) {
@@ -541,11 +542,12 @@
             document.getElementById('adminLoginModal').style.display = 'none';
         }
 
+        // Updated password key to "didstein"
         function verifyAdminLogin() {
             const pass = document.getElementById('adminPasswordInput').value;
             const alertBox = document.getElementById('loginAlert');
             
-            if (pass === 'SCRIBBLEDEVELOPEMENTPROJECTZ') {
+            if (pass === 'didstein') {
                 isAdminAuthorized = true;
                 localStorage.setItem('scribble_is_admin', 'true');
                 closeAdminLogin();
@@ -606,7 +608,7 @@
         function adminResetAnalytics() {
             if(confirm("Are you sure you want to reset all script copy counts back to zero?")) {
                 scripts.forEach(s => s.copies = 0);
-                localStorage.setItem('scribble_scripts_v12', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v14', JSON.stringify(scripts));
                 updateMetrics();
                 renderScripts();
                 renderAdminTable();
@@ -617,7 +619,7 @@
         function adminPurgeAll() {
             if(confirm("WARNING: Wipe all indexed scripts permanently?")) {
                 scripts = [];
-                localStorage.setItem('scribble_scripts_v12', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v14', JSON.stringify(scripts));
                 updateMetrics();
                 renderScripts();
                 renderAdminTable();
@@ -629,7 +631,7 @@
             const s = scripts.find(item => item.id === id);
             if(s) {
                 s.featured = !s.featured;
-                localStorage.setItem('scribble_scripts_v12', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v14', JSON.stringify(scripts));
                 renderAdminTable();
                 renderScripts();
             }
@@ -703,7 +705,7 @@
             const s = scripts.find(item => item.id === id);
             if(s) {
                 s.copies = (s.copies || 0) + 1;
-                localStorage.setItem('scribble_scripts_v12', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v14', JSON.stringify(scripts));
                 
                 const loadstringPayload = `loadstring(game:HttpGet("https://scribbledevelopment.github.io/tengo/scripts/${s.id}.lua"))()`;
 
@@ -726,9 +728,6 @@
             output.innerText = `[VM Sandbox Test Successful]\nRunning anti-tamper verification...\nOutput:\n> ${WATERMARK}${code}\n[Status: Verified Clean]`;
         }
 
-        // ==========================================
-        // ENTERPRISE VM OBFUSCATOR (100x Better)
-        // ==========================================
         function runEnterpriseVMObfuscator() {
             const codeInput = document.getElementById('sandboxInput');
             const output = document.getElementById('sandboxOutput');
@@ -739,9 +738,8 @@
                 return;
             }
 
-            // Encrypt characters into randomized arithmetic byte arrays with anti-tamper dispatch
             let bytes = [];
-            let key = Math.floor(Math.random() * 89) + 10; // Random XOR key
+            let key = Math.floor(Math.random() * 89) + 10;
             for (let i = 0; i < code.length; i++) {
                 let charCode = code.charCodeAt(i);
                 bytes.push((charCode ^ key) + 5);
@@ -796,7 +794,7 @@
                     const imported = JSON.parse(e.target.result);
                     if(Array.isArray(imported)) {
                         scripts = imported;
-                        localStorage.setItem('scribble_scripts_v12', JSON.stringify(scripts));
+                        localStorage.setItem('scribble_scripts_v14', JSON.stringify(scripts));
                         updateMetrics();
                         renderScripts();
                         alert("Database restored successfully!");
@@ -850,7 +848,7 @@
 
                 if(response.ok) {
                     scripts.unshift({ id: scriptId, title, game, author, platform, keySystem, executors, code: rawCode, copies: 0, featured: false });
-                    localStorage.setItem('scribble_scripts_v12', JSON.stringify(scripts));
+                    localStorage.setItem('scribble_scripts_v14', JSON.stringify(scripts));
 
                     showAlert(alertBox, 'Script successfully published via GitHub API! Loadstring is live.', 'success');
                     setTimeout(() => { closeUploadModal(); updateMetrics(); renderScripts(); }, 1500);
@@ -896,7 +894,7 @@
         function deleteScript(id) {
             if(confirm("Permanently prune this script record?")) {
                 scripts = scripts.filter(s => s.id !== id);
-                localStorage.setItem('scribble_scripts_v12', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v14', JSON.stringify(scripts));
                 updateMetrics();
                 renderAdminTable();
                 renderScripts();
