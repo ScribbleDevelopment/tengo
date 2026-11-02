@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scribble's Ultimate Script Hub & Engine PRO - Repo Scripts Edition</title>
+    <title>Scribble's Ultimate Script Hub & Engine PRO - Auto-Sync Repo Edition</title>
     <style>
         :root {
             --bg-base: #05070c;
@@ -151,7 +151,7 @@
     <div class="modal-overlay" id="warningModal" style="display: flex;">
         <div class="modal warning-box">
             <h2>⚡ Scribble's Script Hub PRO</h2>
-            <p>GitHub API Repository Integration Active!<br><br>Publish scripts to automatically commit them to your `scripts/` tab on your git repository and generate the exact raw loadstring link.</p>
+            <p>Auto-Sync Repo Edition Active!<br><br>Default scripts are automatically verified and committed to your repository's `scripts/` tab on launch.</p>
             <button class="btn" onclick="acceptRules()" style="width: 100%; justify-content: center;">Launch Hub</button>
         </div>
     </div>
@@ -232,7 +232,7 @@
     <sidebar>
         <div>
             <div class="sidebar-brand" onclick="switchTab('home')">
-                ⚡ ScribbleHub <span style="font-size: 9px; background: var(--accent); padding: 2px 6px; border-radius: 6px; color: white;">REPO API</span>
+                ⚡ ScribbleHub <span style="font-size: 9px; background: var(--accent); padding: 2px 6px; border-radius: 6px; color: white;">AUTO-SYNC</span>
             </div>
             <div class="sidebar-menu">
                 <button class="menu-item active" id="nav-home" onclick="switchTab('home')">📁 Script Directory</button>
@@ -465,8 +465,9 @@
     </div>
 
     <script>
-        let scripts = JSON.parse(localStorage.getItem('scribble_scripts_v17')) || [
-            { id: 1, filename: "1.lua", title: "Universal ESP & Flight Hub", game: "Universal", author: "Scribble513", platform: "Both", keySystem: "No", executors: "Delta, Synapse", code: "print('ESP Payload Loaded')", copies: 142, featured: true },
+        // Default scripts with designated filenames matching your repository's scripts/ tab
+        let scripts = JSON.parse(localStorage.getItem('scribble_scripts_v18')) || [
+            { id: 1, filename: "1.lua", title: "Universal ESP & Flight Hub", game: "Universal", author: "Scribble513", platform: "Both", keySystem: "No", executors: "Delta, Synapse", code: "print('Universal ESP Payload Loaded')", copies: 142, featured: true },
             { id: 2, filename: "2.lua", title: "Fisch Auto Fish & Rare Mutation Finder", game: "Fisch", author: "0HM3G", platform: "Both", keySystem: "Yes", executors: "Arceus X, Wave", code: "print('Fisch Automation Loaded')", copies: 389, featured: false }
         ];
 
@@ -477,10 +478,10 @@
 
         window.onload = function() {
             try {
-                if(!localStorage.getItem('rules_accepted_v17')) {
+                if(!localStorage.getItem('rules_accepted_v18')) {
                     document.getElementById('warningModal').style.display = 'flex';
                 }
-                const savedTheme = localStorage.getItem('scribble_theme_v17') || 'dark';
+                const savedTheme = localStorage.getItem('scribble_theme_v18') || 'dark';
                 document.body.setAttribute('data-theme', savedTheme);
                 document.getElementById('themeSelector').value = savedTheme;
                 
@@ -488,19 +489,56 @@
                 checkAnnouncement();
                 updateMetrics();
                 renderScripts();
+
+                // Automatically check if default scripts exist in the repository on reload
+                checkAndSyncDefaultScripts();
             } catch(e) {
                 console.error("Initialization error:", e);
             }
         }
 
+        async function checkAndSyncDefaultScripts() {
+            const token = localStorage.getItem('scribble_github_token');
+            if(!token) return; // If no token has been provided yet, skip auto-sync until next publish
+
+            const owner = "ScribbleDevelopment";
+            const repo = "tengo";
+
+            for(let s of scripts) {
+                try {
+                    const checkRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/scripts/${s.filename}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if(checkRes.status === 404) {
+                        // File doesn't exist in repo scripts/ tab yet, commit it automatically!
+                        const finalContent = WATERMARK + s.code;
+                        const encodedContent = btoa(unescape(encodeURIComponent(finalContent)));
+                        await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/scripts/${s.filename}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                message: `Auto-sync default script: ${s.title}`,
+                                content: encodedContent
+                            })
+                        });
+                    }
+                } catch(err) {
+                    console.error("Background repo sync check error:", err);
+                }
+            }
+        }
+
         function acceptRules() {
-            localStorage.setItem('rules_accepted_v17', 'true');
+            localStorage.setItem('rules_accepted_v18', 'true');
             document.getElementById('warningModal').style.display = 'none';
         }
 
         function changeTheme(theme) {
             document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('scribble_theme_v17', theme);
+            localStorage.setItem('scribble_theme_v18', theme);
         }
 
         function switchTab(tabName) {
@@ -608,7 +646,7 @@
         function adminResetAnalytics() {
             if(confirm("Are you sure you want to reset all script copy counts back to zero?")) {
                 scripts.forEach(s => s.copies = 0);
-                localStorage.setItem('scribble_scripts_v17', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v18', JSON.stringify(scripts));
                 updateMetrics();
                 renderScripts();
                 renderAdminTable();
@@ -619,7 +657,7 @@
         function adminPurgeAll() {
             if(confirm("WARNING: Wipe all indexed scripts permanently?")) {
                 scripts = [];
-                localStorage.setItem('scribble_scripts_v17', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v18', JSON.stringify(scripts));
                 updateMetrics();
                 renderScripts();
                 renderAdminTable();
@@ -631,7 +669,7 @@
             const s = scripts.find(item => item.id === id);
             if(s) {
                 s.featured = !s.featured;
-                localStorage.setItem('scribble_scripts_v17', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v18', JSON.stringify(scripts));
                 renderAdminTable();
                 renderScripts();
             }
@@ -705,7 +743,7 @@
             const s = scripts.find(item => item.id === id);
             if(s) {
                 s.copies = (s.copies || 0) + 1;
-                localStorage.setItem('scribble_scripts_v17', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v18', JSON.stringify(scripts));
                 
                 const loadstringPayload = `loadstring(game:HttpGet("${BASE_RAW_URL}${s.filename}"))()`;
 
@@ -794,7 +832,7 @@
                     const imported = JSON.parse(e.target.result);
                     if(Array.isArray(imported)) {
                         scripts = imported;
-                        localStorage.setItem('scribble_scripts_v17', JSON.stringify(scripts));
+                        localStorage.setItem('scribble_scripts_v18', JSON.stringify(scripts));
                         updateMetrics();
                         renderScripts();
                         alert("Database restored successfully!");
@@ -823,6 +861,9 @@
             const executors = document.getElementById('upExecutors').value || 'Universal';
             const rawCode = document.getElementById('upCode').value;
 
+            // Remember token locally so background checks can run automatically
+            localStorage.setItem('scribble_github_token', token);
+
             const scriptId = Date.now();
             const filename = `${scriptId}.lua`;
             const finalScriptContent = WATERMARK + rawCode;
@@ -832,7 +873,7 @@
             try {
                 const owner = "ScribbleDevelopment";
                 const repo = "tengo";
-                const path = `scripts/${filename}`; // Explicitly commits inside the scripts/ folder
+                const path = `scripts/${filename}`;
                 const contentEncoded = btoa(unescape(encodeURIComponent(finalScriptContent)));
 
                 const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
@@ -849,7 +890,7 @@
 
                 if(response.ok) {
                     scripts.unshift({ id: scriptId, filename: filename, title, game, author, platform, keySystem, executors, code: rawCode, copies: 0, featured: false });
-                    localStorage.setItem('scribble_scripts_v17', JSON.stringify(scripts));
+                    localStorage.setItem('scribble_scripts_v18', JSON.stringify(scripts));
 
                     showAlert(alertBox, 'Script successfully committed to scripts/ tab! Loadstring is live.', 'success');
                     setTimeout(() => { closeUploadModal(); updateMetrics(); renderScripts(); }, 1500);
@@ -895,7 +936,7 @@
         function deleteScript(id) {
             if(confirm("Permanently prune this script record?")) {
                 scripts = scripts.filter(s => s.id !== id);
-                localStorage.setItem('scribble_scripts_v17', JSON.stringify(scripts));
+                localStorage.setItem('scribble_scripts_v18', JSON.stringify(scripts));
                 updateMetrics();
                 renderAdminTable();
                 renderScripts();
