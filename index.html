@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scribble's Ultimate Script Hub & Engine PRO - Auto-Sync Repo Edition</title>
+    <title>Scribble's Ultimate Script Hub & Engine PRO - Secure Portal Edition</title>
     <style>
         :root {
             --bg-base: #05070c;
@@ -156,10 +156,11 @@
         </div>
     </div>
 
+    <!-- Admin Login Modal with Password Hint Removed -->
     <div class="modal-overlay" id="adminLoginModal">
         <div class="modal" style="max-width: 400px;">
             <h2>🛡️ Admin Portal Authorization</h2>
-            <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 16px;">Enter the developer password (`didstein`) to access moderation controls.</p>
+            <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 16px;">Enter the developer password to access moderation controls.</p>
             <div class="alert-msg" id="loginAlert"></div>
             <div class="form-group">
                 <label>Developer Password</label>
@@ -465,7 +466,6 @@
     </div>
 
     <script>
-        // Default scripts with designated filenames matching your repository's scripts/ tab
         let scripts = JSON.parse(localStorage.getItem('scribble_scripts_v18')) || [
             { id: 1, filename: "1.lua", title: "Universal ESP & Flight Hub", game: "Universal", author: "Scribble513", platform: "Both", keySystem: "No", executors: "Delta, Synapse", code: "print('Universal ESP Payload Loaded')", copies: 142, featured: true },
             { id: 2, filename: "2.lua", title: "Fisch Auto Fish & Rare Mutation Finder", game: "Fisch", author: "0HM3G", platform: "Both", keySystem: "Yes", executors: "Arceus X, Wave", code: "print('Fisch Automation Loaded')", copies: 389, featured: false }
@@ -489,8 +489,6 @@
                 checkAnnouncement();
                 updateMetrics();
                 renderScripts();
-
-                // Automatically check if default scripts exist in the repository on reload
                 checkAndSyncDefaultScripts();
             } catch(e) {
                 console.error("Initialization error:", e);
@@ -499,7 +497,7 @@
 
         async function checkAndSyncDefaultScripts() {
             const token = localStorage.getItem('scribble_github_token');
-            if(!token) return; // If no token has been provided yet, skip auto-sync until next publish
+            if(!token) return;
 
             const owner = "ScribbleDevelopment";
             const repo = "tengo";
@@ -510,7 +508,6 @@
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     if(checkRes.status === 404) {
-                        // File doesn't exist in repo scripts/ tab yet, commit it automatically!
                         const finalContent = WATERMARK + s.code;
                         const encodedContent = btoa(unescape(encodeURIComponent(finalContent)));
                         await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/scripts/${s.filename}`, {
@@ -861,7 +858,6 @@
             const executors = document.getElementById('upExecutors').value || 'Universal';
             const rawCode = document.getElementById('upCode').value;
 
-            // Remember token locally so background checks can run automatically
             localStorage.setItem('scribble_github_token', token);
 
             const scriptId = Date.now();
