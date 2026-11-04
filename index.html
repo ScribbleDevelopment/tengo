@@ -470,7 +470,7 @@
     <header>
         <div class="logo-container">
             <div class="logo">ScribbleHub</div>
-            <div class="logo-badge">Cloud CDN v3.4</div>
+            <div class="logo-badge">Vercel CDN v3.4</div>
         </div>
         <div class="nav-tabs">
             <button class="tab-btn active" onclick="switchTab('explore')">📁 Explore</button>
@@ -486,7 +486,7 @@
         <div id="explore" class="tab-content active">
             <div class="card">
                 <h2>🔍 Explore <span>Cloud Script Repository</span></h2>
-                <p class="section-desc">Browse, search, and instantly copy game:HttpGet loadstrings hosted live on your Cloudflare Workers KV backend.</p>
+                <p class="section-desc">Browse, search, and instantly copy game:HttpGet loadstrings routed through your Vercel CDN and backed by Cloudflare Workers KV.</p>
                 <div class="search-filter-bar">
                     <input type="text" class="form-control" id="searchInput" placeholder="Search by script title, game, or author..." oninput="filterScripts()" style="flex: 1;">
                     <button class="btn btn-secondary" onclick="fetchAllScripts()">🔄 Refresh Cloud</button>
@@ -499,7 +499,7 @@
                     <div class="tag-pill" onclick="filterByCategory('Universal', this)">Universal</div>
                 </div>
                 <div class="script-grid" id="scriptGridContainer">
-                    <p style="color: var(--text-muted); grid-column: 1 / -1; text-align: center; padding: 40px;">Establishing secure connection to Cloudflare KV CDN...</p>
+                    <p style="color: var(--text-muted); grid-column: 1 / -1; text-align: center; padding: 40px;">Establishing secure connection to Cloudflare KV backend...</p>
                 </div>
             </div>
         </div>
@@ -508,7 +508,7 @@
         <div id="publish" class="tab-content">
             <div class="card">
                 <h2>🚀 Publish Script <span>to Cloud CDN</span></h2>
-                <p class="section-desc">Instantly deploy raw Luau script payloads to your persistent Cloudflare backend for seamless executor retrieval via game:HttpGet.</p>
+                <p class="section-desc">Instantly deploy raw Luau script payloads to your persistent backend for seamless executor retrieval via your Vercel CDN domain.</p>
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Script Title</label>
@@ -575,9 +575,9 @@
                         <button class="btn btn-danger" style="margin-top: 15px; padding: 8px 16px; font-size: 12px;" onclick="clearLocalCacheRegistry()">Purge Local Registry</button>
                     </div>
                     <div class="stat-card" style="text-align: left;">
-                        <div class="stat-title">Cloud Backend Endpoint</div>
-                        <div style="font-family: var(--font-mono); font-size: 12px; color: var(--accent-neon); margin: 12px 0; word-break: break-all;" id="adminBackendUrlDisplay">https://backend.amandarhoades2.workers.dev</div>
-                        <p style="color: var(--text-muted); font-size: 12px;">Active Cloudflare Worker running Workers KV bindings.</p>
+                        <div class="stat-title">Vercel CDN / Backend Endpoint</div>
+                        <div style="font-family: var(--font-mono); font-size: 12px; color: var(--accent-neon); margin: 12px 0; word-break: break-all;" id="adminBackendUrlDisplay">https://scribble-code.vercel.app/script/</div>
+                        <p style="color: var(--text-muted); font-size: 12px;">Active Vercel Edge Proxy pointing to Cloudflare backend.</p>
                         <button class="btn btn-secondary" style="margin-top: 15px; padding: 8px 16px; font-size: 12px;" onclick="testBackendConnectivity()">Test Ping Connection</button>
                     </div>
                 </div>
@@ -600,7 +600,7 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-title">Edge Network</div>
-                        <div class="stat-value" style="font-size: 18px; color: var(--accent-cyan);">Cloudflare KV</div>
+                        <div class="stat-value" style="font-size: 18px; color: var(--accent-cyan);">Vercel + CF KV</div>
                     </div>
                 </div>
                 <button class="btn" onclick="fetchAllScripts()">🔄 Refresh Telemetry</button>
@@ -614,6 +614,7 @@
 
     <script>
         const BACKEND_URL = "https://backend.amandarhoades2.workers.dev";
+        const VERCEL_CDN_DOMAIN = "https://scribble-code.vercel.app";
         let localScriptsCache = [];
         let currentCategoryFilter = 'All';
 
@@ -651,7 +652,7 @@
                 const saved = localStorage.getItem('scribble_published_ids');
                 const scriptIds = saved ? JSON.parse(saved) : [];
                 document.getElementById('adminTrackedCount').innerText = scriptIds.length;
-                document.getElementById('adminBackendUrlDisplay').innerText = BACKEND_URL;
+                document.getElementById('adminBackendUrlDisplay').innerText = `${VERCEL_CDN_DOMAIN}/script/`;
                 
                 localScriptsCache = [];
                 for(let id of scriptIds) {
@@ -659,7 +660,6 @@
                         const r = await fetch(`${BACKEND_URL}/api/script/${id}`);
                         if(r.ok) {
                             const codeText = await r.text();
-                            // Attempt title/game parse or fallback
                             localScriptsCache.push({
                                 id: id,
                                 title: `Script #${id.slice(-6)}`,
@@ -746,7 +746,8 @@
                 const card = document.createElement('div');
                 card.className = 'script-card';
                 
-                const httpGetSnippet = `loadstring(game:HttpGet("${BACKEND_URL}/api/script/${s.id}"))()`;
+                // Loadstring pointing to your Vercel CDN domain
+                const httpGetSnippet = `loadstring(game:HttpGet("${VERCEL_CDN_DOMAIN}/script/${s.id}"))()`;
 
                 card.innerHTML = `
                     <div>
@@ -757,7 +758,7 @@
                         <div class="script-meta">By ${s.author} | ID: ${s.id}</div>
                         <div class="code-box">${httpGetSnippet}</div>
                     </div>
-                    <button class="btn" style="width: 100%; padding: 10px; font-size: 13px;" onclick="navigator.clipboard.writeText('${httpGetSnippet}'); showToast('Copied game:HttpGet to clipboard!');">📋 Copy loadstring</button>
+                    <button class="btn" style="width: 100%; padding: 10px; font-size: 13px;" onclick="navigator.clipboard.writeText('${httpGetSnippet}'); showToast('Copied Vercel loadstring to clipboard!');">📋 Copy loadstring</button>
                 `;
                 container.appendChild(card);
             });
@@ -789,12 +790,12 @@
             }
             const encoded = btoa(code);
             document.getElementById('sandboxCode').value = `-- [Scribble Obfuscator Suite v3.4]\nloadstring(game:HttpGet("data:text/plain;base64,${encoded}"))()`;
-            document.getElementById('sandboxConsole.innerText += `\n[Success] Code successfully encoded using base64 wrapper vector.`);
+            document.getElementById('sandboxConsole').innerText += `\n[Success] Code successfully encoded using base64 wrapper vector.`;
             showToast("Script obfuscated successfully!");
         }
 
         function formatSandboxCode() {
-            const code = document.getElementById('sandboxCode').value;
+            document.getElementById('sandboxCode').value;
             document.getElementById('sandboxConsole').innerText += `\n[Info] Sandbox code syntax check passed.`;
             showToast("Code validated and formatted!");
         }
